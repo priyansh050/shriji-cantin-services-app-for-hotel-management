@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shreeji Campus Canteen • ડિજિટલ ફૂડ ઓર્ડરિંગ</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans & Noto Sans Gujarati -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            kesari: {
+              50: '#fff7ed',
+              100: '#ffedd5',
+              200: '#fed7aa',
+              500: '#f97316',
+              600: '#ea580c',
+              700: '#c2410c',
+              800: '#9a3412',
+            },
+            marigold: {
+              400: '#fbbf24',
+              500: '#f59e0b',
+              600: '#d97706',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Canvas Confetti & QR Code Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-mandala-pattern min-h-screen text-slate-800 flex flex-col antialiased selection:bg-orange-500 selection:text-white">
+
+  <!-- =========================================================================
+       1. TOP ANNOUNCEMENT & CANTEEN OPERATING HOURS BAR
+       ========================================================================= -->
+  <div class="bg-gradient-to-r from-orange-700 via-amber-600 to-orange-700 text-white text-xs font-semibold py-2 px-4 shadow-sm relative z-30">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1.5 text-center sm:text-left">
+      <div class="flex items-center gap-2">
+        <span class="text-sm">🪔</span>
+        <span><b>Shreeji Campus Canteen (શ્રીજી કેમ્પસ કેન્ટીન)</b> • 100% Pure Vegetarian Gujarati Food</span>
+      </div>
+      <div class="flex items-center gap-3 text-[11px]">
+        <span class="flex items-center gap-1 opacity-90">
+          <svg class="w-3.5 h-3.5 text-amber-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          Mon–Sat: 8:00 AM – 8:00 PM | Sun: Closed
+        </span>
+        <button onclick="CanteenApp.openStandeesModal()" class="underline hover:text-amber-200 transition-colors hidden md:inline">
+          View All Table QRs
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       2. CLOSED CANTEEN ALERT BANNER (Shown when closed)
+       ========================================================================= -->
+  <div id="canteen-closed-banner" class="hidden bg-rose-600 text-white px-4 py-3 shadow-md border-b-2 border-rose-800 transition-all">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
+      <div class="flex items-center gap-3 text-center md:text-left">
+        <div class="w-8 h-8 rounded-full bg-rose-700 flex items-center justify-center text-lg flex-shrink-0">
+          ⏰
+        </div>
+        <div>
+          <h4 class="font-extrabold text-sm tracking-wide">Canteen is currently closed.</h4>
+          <p class="text-xs text-rose-100 font-medium">Please place your order during opening hours (Monday–Saturday 8:00 AM – 8:00 PM).</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs bg-rose-700/80 px-3 py-1 rounded-full font-mono text-rose-100">Browsing Menu Only</span>
+        <button onclick="document.getElementById('canteen-closed-banner').classList.add('hidden')" class="text-rose-200 hover:text-white text-xs underline p-1">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       3. ACTIVE ORDER FLOATING NOTIFIER (if student has an active placed order)
+       ========================================================================= -->
+  <div id="active-order-floating-banner" class="hidden bg-amber-900 text-white py-2 px-4 shadow-lg sticky top-0 z-40 border-b border-amber-700">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2 text-xs">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+        <span class="font-bold">Active Order: <span id="floating-order-id" class="font-mono text-amber-300">#ORD1025</span></span>
+        <span class="hidden sm:inline text-amber-200">• Status: <b id="floating-order-status" class="text-white">Order Received</b></span>
+      </div>
+      <button onclick="CanteenApp.viewActiveOrderDetails()" class="px-3 py-1 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-lg font-bold shadow-sm flex items-center gap-1 transition-all">
+        <span>Track Live Status</span>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       4. MAIN HEADER NAVIGATION BAR
+       ========================================================================= -->
+  <header class="glass-nav sticky top-0 z-30 transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-3">
+      
+      <!-- Brand Logo & Cultural Title -->
+      <a href="#" class="flex items-center gap-3 group">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center text-2xl shadow-md border-2 border-white ring-2 ring-orange-200 group-hover:scale-105 transition-transform flex-shrink-0">
+          🍲
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl sm:text-2xl font-black text-gray-900 tracking-tight flex items-center gap-1">
+              Shreeji <span class="text-orange-600">Canteen</span>
+            </h1>
+            <span class="veg-indicator" title="100% Pure Veg">
+              <span class="veg-indicator-dot"></span>
+            </span>
+          </div>
+          <p class="text-[11px] font-bold text-amber-800 gujarati-font tracking-wide">
+            શ્રીજી કેમ્પસ કેન્ટીન • શુદ્ધ અને સ્વાદિષ્ટ
+          </p>
+        </div>
+      </a>
+
+      <!-- Center Table Pill & Status Indicator -->
+      <div class="hidden md:flex items-center gap-3">
+        <!-- Table Detection Badge -->
+        <button 
+          onclick="CanteenApp.openTableModal()" 
+          class="px-4 py-2 bg-gradient-to-r from-amber-50 to-orange-50 border border-orange-200 hover:border-orange-400 rounded-2xl flex items-center gap-2.5 shadow-xs transition-all hover:shadow-sm"
+          title="Click to Switch Table"
+        >
+          <div class="w-7 h-7 rounded-xl bg-orange-600 text-white font-black text-xs flex items-center justify-center shadow-xs">
+            📍
+          </div>
+          <div class="text-left">
+            <span id="table-badge-text" class="text-xs font-black text-gray-900 block leading-tight">Table 1</span>
+            <span class="text-[10px] text-orange-700 font-semibold gujarati-font">ટેબલ બદલો (Switch)</span>
+          </div>
+          <svg class="w-4 h-4 text-gray-400 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </button>
+
+        <!-- Live Canteen Hours Pill -->
+        <div id="canteen-status-pill" class="px-3 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-xs">
+          <span id="canteen-status-pill-text">Open (8 AM – 8 PM)</span>
+        </div>
+      </div>
+
+      <!-- Right Navigation Actions: Standees, Admin Pin, Cart Drawer Button -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Mobile Table Switcher Button -->
+        <button 
+          onclick="CanteenApp.openTableModal()" 
+          class="md:hidden px-2.5 py-1.5 bg-orange-50 border border-orange-200 rounded-xl text-xs font-bold text-orange-900 flex items-center gap-1"
+        >
+          <span>📍</span>
+          <span class="table-badge-mobile">T1</span>
+        </button>
+
+        <!-- QR Standees Hub Button -->
+        <button 
+          onclick="CanteenApp.openStandeesModal()" 
+          class="p-2 sm:px-3 sm:py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs"
+          title="View & Print Table QR Standees"
+        >
+          <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+          <span class="hidden sm:inline">QR Tables</span>
+        </button>
+
+        <!-- Admin Kitchen Dashboard Switcher -->
+        <button 
+          onclick="openAdminAuthModal()" 
+          class="p-2 sm:px-3 sm:py-2 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all shadow-xs"
+          title="Kitchen & Admin Panel"
+        >
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          <span class="hidden sm:inline">Kitchen Admin</span>
+        </button>
+
+        <!-- Cart Drawer Trigger Button -->
+        <button 
+          onclick="CanteenApp.openCartDrawer()" 
+          class="px-3.5 py-2.5 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white rounded-2xl font-extrabold text-sm flex items-center gap-2 shadow-md transition-all active:scale-95 relative"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+          <span class="hidden md:inline">Cart</span>
+          <span class="cart-count-badge hidden px-2 py-0.5 bg-white text-orange-700 rounded-full text-xs font-black shadow-xs">
+            0
+          </span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       5. HOMEPAGE HERO SECTION (Exact required phrases from prompt)
+       ========================================================================= -->
+  <section class="relative overflow-hidden bg-gradient-to-b from-amber-100/70 via-orange-50/40 to-transparent pt-6 pb-10 px-4 sm:px-6 lg:px-8 border-b border-amber-200/60">
+    <div class="max-w-7xl mx-auto">
+      
+      <!-- Table Welcome Banner (Fulfills prompt: "Table 1 – Welcome to Our Canteen") -->
+      <div class="mb-6 p-4 sm:p-5 bg-white/90 backdrop-blur-md rounded-3xl border-2 border-orange-300/80 shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-4 text-center md:text-left">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 text-white flex items-center justify-center text-2xl font-black shadow-md flex-shrink-0">
+            🍽️
+          </div>
+          <div>
+            <h2 id="table-welcome-title" class="text-lg sm:text-xl font-black text-gray-900">
+              Table 1 – <span class="text-orange-600 font-extrabold">Welcome to Our Canteen</span>
+              <span class="gujarati-font text-amber-800 text-sm block md:inline font-normal mt-0.5 md:mt-0">(આપનું હાર્દિક સ્વાગત છે)</span>
+            </h2>
+            <p class="text-xs text-gray-600 mt-0.5">
+              Your table is detected automatically via QR code. Browse items below and place your order directly!
+            </p>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <button 
+            onclick="CanteenApp.openTableModal()" 
+            class="px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+          >
+            <span>🔄</span> Switch Table
+          </button>
+          <a 
+            href="#digital-menu-section" 
+            class="px-5 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all"
+          >
+            Order Now
+          </a>
+        </div>
+      </div>
+
+      <!-- Hero Banner Content -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div class="lg:col-span-7 space-y-4 text-center lg:text-left">
+          
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 bg-orange-100/90 text-orange-900 rounded-full text-xs font-black border border-orange-200 shadow-2xs">
+            <span class="text-sm">✨</span>
+            <span>Welcome to Our College Canteen</span>
+            <span class="gujarati-font text-orange-700 font-bold">• સ્કેન કરો અને ઓર્ડર કરો</span>
+          </div>
+
+          <h2 class="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 tracking-tight leading-tight">
+            Scan • Select • Order • Enjoy
+          </h2>
+
+          <p class="text-base sm:text-lg font-bold text-orange-700">
+            Fresh Gujarati & Indian Food • Fast Service • Easy Ordering • Digital Menu
+          </p>
+
+          <p class="text-xs sm:text-sm text-gray-600 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+            Order authentic Kathiyawadi & Amdavadi snacks right from your college canteen table. 
+            Fresh Masala Bhakhri, Methi Thepla, Fafda, Khaman, Samosas, Kadak Chai, and Royal Gujarati Thali prepared hot upon order!
+          </p>
+
+          <!-- Action Buttons -->
+          <div class="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-3">
+            <a 
+              href="#digital-menu-section" 
+              class="px-7 py-3.5 bg-gradient-to-r from-orange-600 via-kesari-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white rounded-2xl font-black text-sm shadow-lg hover:shadow-xl transition-all flex items-center gap-2 group"
+            >
+              <span>View Menu</span>
+              <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </a>
+
+            <button 
+              onclick="CanteenApp.openStandeesModal()" 
+              class="px-6 py-3.5 bg-white hover:bg-amber-50 text-gray-800 border-2 border-amber-300 rounded-2xl font-extrabold text-sm shadow-xs transition-all flex items-center gap-2"
+            >
+              <span>📱</span> Test Any Table QR
+            </button>
+          </div>
+
+          <!-- Feature Highlights -->
+          <div class="pt-4 grid grid-cols-3 gap-2 max-w-lg mx-auto lg:mx-0 text-center">
+            <div class="p-2.5 bg-white/70 rounded-xl border border-amber-200">
+              <span class="block text-base">⚡</span>
+              <span class="text-[11px] font-bold text-gray-800 block">No Long Queues</span>
+              <span class="text-[10px] text-gray-500">Scan & relax at table</span>
+            </div>
+            <div class="p-2.5 bg-white/70 rounded-xl border border-amber-200">
+              <span class="block text-base">⏱️</span>
+              <span class="text-[11px] font-bold text-gray-800 block">Live Prep Timer</span>
+              <span class="text-[10px] text-gray-500">Instant kitchen tracking</span>
+            </div>
+            <div class="p-2.5 bg-white/70 rounded-xl border border-amber-200">
+              <span class="block text-base">🌱</span>
+              <span class="text-[11px] font-bold text-gray-800 block">100% Pure Veg</span>
+              <span class="text-[10px] text-gray-500">Jain food options</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Graphic Food Plate Showcase -->
+        <div class="lg:col-span-5 flex justify-center">
+          <div class="relative w-full max-w-md">
+            <div class="absolute -inset-2 bg-gradient-to-r from-orange-500 to-amber-400 rounded-3xl blur-xl opacity-30 animate-pulse"></div>
+            <div class="relative bg-white rounded-3xl p-5 border-2 border-amber-300 shadow-xl overflow-hidden">
+              <div class="flex items-center justify-between mb-3 border-b border-amber-100 pb-2">
+                <span class="text-xs font-bold text-orange-700 uppercase tracking-wider">🌟 Campus Chef Special</span>
+                <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-[11px] font-extrabold">Hot & Fresh</span>
+              </div>
+              <img 
+                src="images/gujarati-thali.jpg" 
+                alt="Gujarati Thali" 
+                class="w-full h-52 object-cover rounded-2xl mb-4 shadow-sm"
+              />
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="font-black text-gray-900 text-base">Royal Gujarati Thali</h4>
+                  <p class="text-xs font-bold text-amber-800 gujarati-font">રોયલ કાઠિયાવાડી થાળી</p>
+                </div>
+                <div class="text-right">
+                  <span class="text-xl font-black text-orange-600">₹120</span>
+                  <span class="block text-[10px] text-gray-400">⏱️ 20 min prep</span>
+                </div>
+              </div>
+              <p class="text-xs text-gray-500 mt-2">
+                2 Shaak, 4 Rotli with ghee, Gujarati Dal/Kadhi, Bhaat, Farsan, Sweet, Papad & Masala Chaas.
+              </p>
+              <button 
+                onclick="CanteenApp.addToCart('spec-1')" 
+                class="w-full mt-3 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-black shadow-sm transition-all flex items-center justify-center gap-1.5"
+              >
+                + Add Thali to Table Order
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       6. DIGITAL MENU SECTION: SEARCH, FILTERS & CATEGORIES
+       ========================================================================= -->
+  <main id="digital-menu-section" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+    
+    <!-- Controls Header -->
+    <div class="mb-6 space-y-4">
+      
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h3 class="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+            <span>Digital Canteen Menu</span>
+            <span class="text-xs font-bold px-2.5 py-1 bg-amber-100 text-amber-900 rounded-full border border-amber-200 gujarati-font">ડિજિટલ મેનુ</span>
+          </h3>
+          <p id="menu-item-count" class="text-xs font-semibold text-gray-500 mt-0.5">
+            Loading delicious items...
+          </p>
+        </div>
+
+        <!-- Search Bar & Sorter -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+          <!-- Live Search Input -->
+          <div class="relative flex-1 sm:w-72">
+            <input 
+              type="text" 
+              id="menu-search-input"
+              placeholder="Search snacks, thepla, chai, poha..." 
+              class="w-full pl-9 pr-4 py-2.5 bg-white border border-amber-300 rounded-2xl text-xs font-medium focus:ring-2 focus:ring-orange-500 focus:border-orange-500 shadow-2xs outline-none"
+            />
+            <svg class="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          </div>
+
+          <!-- Sort Select -->
+          <select 
+            id="menu-sort-select"
+            class="px-3.5 py-2.5 bg-white border border-amber-300 rounded-2xl text-xs font-bold text-gray-700 focus:ring-2 focus:ring-orange-500 outline-none shadow-2xs cursor-pointer"
+          >
+            <option value="recommended">Sort: Recommended</option>
+            <option value="popular">Most Popular</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="prep-asc">Prep Time: Fastest First</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Category Filter Tabs (Horizontal Scrollable) -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-2 pt-1 no-scrollbar">
+        <button 
+          onclick="CanteenApp.setCategory('All')" 
+          data-category="All"
+          class="cat-chip active px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-700 border border-amber-200 shadow-2xs flex items-center gap-1.5"
+        >
+          <span>🍽️</span> All Dishes
+        </button>
+
+        <button 
+          onclick="CanteenApp.setCategory('Gujarati Snacks')" 
+          data-category="Gujarati Snacks"
+          class="cat-chip px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-700 border border-amber-200 shadow-2xs flex items-center gap-1.5"
+        >
+          <span>🥟</span> Gujarati Snacks (ફરસાણ)
+        </button>
+
+        <button 
+          onclick="CanteenApp.setCategory('Breakfast')" 
+          data-category="Breakfast"
+          class="cat-chip px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-700 border border-amber-200 shadow-2xs flex items-center gap-1.5"
+        >
+          <span>🥣</span> Breakfast (નાસ્તો)
+        </button>
+
+        <button 
+          onclick="CanteenApp.setCategory('Fast Food')" 
+          data-category="Fast Food"
+          class="cat-chip px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-700 border border-amber-200 shadow-2xs flex items-center gap-1.5"
+        >
+          <span>🥪</span> Fast Food (ફાસ્ટ ફૂડ)
+        </button>
+
+        <button 
+          onclick="CanteenApp.setCategory('Beverages')" 
+          data-category="Beverages"
+          class="cat-chip px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-700 border border-amber-200 shadow-2xs flex items-center gap-1.5"
+        >
+          <span>☕</span> Beverages (ચા & છાસ)
+        </button>
+
+        <button 
+          onclick="CanteenApp.setCategory('Gujarati Special')" 
+          data-category="Gujarati Special"
+          class="cat-chip px-4 py-2 rounded-xl text-xs font-bold bg-white text-gray-700 border border-amber-200 shadow-2xs flex items-center gap-1.5"
+        >
+          <span>🍛</span> Gujarati Special (સ્પેશિયલ)
+        </button>
+      </div>
+
+      <!-- Quick Dietary Pills -->
+      <div class="flex flex-wrap items-center gap-2 pt-1">
+        <span class="text-xs text-gray-500 font-semibold">Quick Filters:</span>
+        
+        <button 
+          id="filter-jain-btn"
+          onclick="CanteenApp.toggleJainFilter()" 
+          class="px-3 py-1 bg-white hover:bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
+        >
+          <span>🟣</span> Jain Option Only
+        </button>
+
+        <button 
+          id="filter-available-btn"
+          onclick="CanteenApp.toggleAvailableFilter()" 
+          class="px-3 py-1 bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
+        >
+          <span>🟢</span> In Stock Only
+        </button>
+
+        <button 
+          onclick="CanteenApp.resetFilters()" 
+          class="px-2.5 py-1 text-gray-500 hover:text-gray-800 text-xs font-medium underline"
+        >
+          Reset All
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Food Cards Responsive Grid -->
+    <div id="food-menu-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <!-- Food cards rendered dynamically by CanteenApp.renderMenu() -->
+    </div>
+
+  </main>
+
+  <!-- =========================================================================
+       7. CART SLIDE-OVER DRAWER
+       ========================================================================= -->
+  <div id="cart-backdrop" class="fixed inset-0 modal-backdrop z-50 hidden transition-opacity" onclick="CanteenApp.closeCartDrawer()"></div>
+  <div id="cart-drawer" class="fixed top-0 right-0 bottom-0 w-full max-w-md bg-white z-50 shadow-2xl flex flex-col justify-between transform translate-x-full transition-transform duration-300 ease-in-out border-l border-amber-200">
+    
+    <!-- Drawer Header -->
+    <div class="p-5 border-b border-amber-200 flex items-center justify-between bg-amber-50/70">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-orange-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+          🛍️
+        </div>
+        <div>
+          <h3 class="font-black text-gray-900 text-base leading-tight">Your Table Order</h3>
+          <p class="text-xs text-orange-700 font-bold">Table <span class="table-badge-mobile">1</span> • Shreeji Canteen</p>
+        </div>
+      </div>
+      <button onclick="CanteenApp.closeCartDrawer()" class="p-2 text-gray-400 hover:text-gray-700 rounded-xl hover:bg-amber-100 transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <!-- Drawer Content / Items List -->
+    <div class="flex-1 overflow-y-auto p-5 space-y-3">
+      
+      <!-- Empty Cart State -->
+      <div id="cart-drawer-empty" class="hidden text-center py-16">
+        <div class="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center text-4xl mx-auto mb-3 border border-amber-200">
+          🥟
+        </div>
+        <h4 class="font-extrabold text-gray-800 text-base">Your cart is empty</h4>
+        <p class="text-xs text-gray-500 gujarati-font mt-1 max-w-xs mx-auto">
+          તમારી પસંદગીની ગરમ ભાખરી, સમોસા કે ચા પસંદ કરો અને ઓર્ડર આપો!
+        </p>
+        <button onclick="CanteenApp.closeCartDrawer()" class="mt-4 px-5 py-2 bg-orange-600 text-white rounded-xl text-xs font-bold shadow-sm">
+          Browse Menu
+        </button>
+      </div>
+
+      <!-- Items Container -->
+      <div id="cart-drawer-items" class="space-y-2.5">
+        <!-- Rendered dynamically -->
+      </div>
+
+    </div>
+
+    <!-- Drawer Footer / Summary & Checkout -->
+    <div id="cart-drawer-footer" class="p-5 border-t border-amber-200 bg-amber-50/50 space-y-3">
+      
+      <!-- Timing Estimation Callout -->
+      <div class="p-3 bg-white rounded-2xl border border-amber-200 shadow-2xs flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2">
+          <span class="text-base">⏱️</span>
+          <div>
+            <span class="font-extrabold text-gray-800 block leading-tight">Estimated Preparation Time</span>
+            <span class="text-[10px] text-gray-500">Calculated for your items</span>
+          </div>
+        </div>
+        <span id="cart-prep-time-estimate" class="font-black text-orange-600 bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-200">
+          10–15 mins
+        </span>
+      </div>
+
+      <!-- Price Breakdown -->
+      <div class="space-y-1.5 text-xs text-gray-600">
+        <div class="flex justify-between">
+          <span>Subtotal</span>
+          <span id="cart-subtotal-display" class="font-bold text-gray-800">₹0</span>
+        </div>
+        <div class="flex justify-between text-[11px] text-emerald-700">
+          <span>College Student Subsidy / Tax</span>
+          <span>₹0 (Included)</span>
+        </div>
+        <div class="flex justify-between text-base font-black text-gray-900 pt-2 border-t border-dashed border-gray-300">
+          <span>Grand Total</span>
+          <span id="cart-grand-total-display" class="text-orange-700">₹0</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button 
+          onclick="CanteenApp.clearCart()" 
+          class="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all"
+        >
+          Clear Cart
+        </button>
+        <button 
+          id="checkout-submit-btn"
+          onclick="CanteenApp.openCheckoutModal()" 
+          class="px-4 py-2.5 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white rounded-xl text-xs font-black shadow-md transition-all flex items-center justify-center gap-1.5"
+        >
+          <span>Confirm & Order</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- =========================================================================
+       8. CHECKOUT & CUSTOMER DETAILS MODAL
+       ========================================================================= -->
+  <div id="checkout-modal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border-2 border-amber-300 relative max-h-[90vh] overflow-y-auto">
+      
+      <!-- Close Button -->
+      <button onclick="CanteenApp.closeCheckoutModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 p-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-12 h-12 rounded-2xl bg-orange-600 text-white flex items-center justify-center text-2xl font-black shadow-sm">
+          📋
+        </div>
+        <div>
+          <h3 class="font-black text-gray-900 text-lg leading-tight">Order Details</h3>
+          <p class="text-xs text-amber-800 gujarati-font font-medium">ગ્રાહકની વિગતો અને ઓર્ડર કન્ફર્મેશન</p>
+        </div>
+      </div>
+
+      <!-- Quick Summary Box -->
+      <div class="mb-4 p-3 bg-amber-50 rounded-2xl border border-amber-200 text-xs">
+        <div class="flex justify-between items-center mb-1">
+          <span class="font-bold text-gray-700">Estimated Prep Time:</span>
+          <span id="checkout-prep-display" class="font-black text-orange-700">10–15 minutes</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="font-bold text-gray-700">Total Payable:</span>
+          <span id="checkout-total-display" class="text-base font-black text-orange-600">₹0</span>
+        </div>
+        <div id="checkout-summary-items" class="mt-2 pt-2 border-t border-amber-200 space-y-1">
+          <!-- Items summary -->
+        </div>
+      </div>
+
+      <!-- Details Form -->
+      <form onsubmit="CanteenApp.submitOrder(event)" class="space-y-3.5">
+        
+        <!-- Table Number (Auto Detected) -->
+        <div>
+          <label class="block text-xs font-extrabold text-gray-700 mb-1">Table Number (Detected from QR)</label>
+          <div class="relative">
+            <input 
+              type="text" 
+              id="checkout-table-display" 
+              value="Table 1" 
+              readonly 
+              class="w-full px-3.5 py-2.5 bg-gray-100 border border-gray-300 rounded-xl text-xs font-bold text-gray-800 cursor-not-allowed"
+            />
+            <span class="absolute right-3 top-2.5 text-xs text-emerald-600 font-bold">✓ Verified QR</span>
+          </div>
+        </div>
+
+        <!-- Customer Name -->
+        <div>
+          <label class="block text-xs font-extrabold text-gray-700 mb-1">
+            Student / Customer Name <span class="text-rose-600">*</span>
+          </label>
+          <input 
+            type="text" 
+            id="cust-name-input" 
+            required
+            placeholder="e.g. Rahul Patel" 
+            class="w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-orange-500 outline-none"
+          />
+        </div>
+
+        <!-- Mobile Number (Optional) -->
+        <div>
+          <label class="block text-xs font-extrabold text-gray-700 mb-1">
+            Mobile Number <span class="text-gray-400 font-normal">(Optional, for notification)</span>
+          </label>
+          <input 
+            type="tel" 
+            id="cust-mobile-input" 
+            placeholder="e.g. 9876543210" 
+            class="w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-orange-500 outline-none"
+          />
+        </div>
+
+        <!-- Special Instructions -->
+        <div>
+          <label class="block text-xs font-extrabold text-gray-700 mb-1">
+            Special Instructions <span class="text-gray-400 font-normal">(Optional)</span>
+          </label>
+          <input 
+            type="text" 
+            id="cust-notes-input" 
+            placeholder="e.g. Less spicy / Jain food / Extra chutney / Chai extra kadak" 
+            class="w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-xl text-xs font-medium focus:ring-2 focus:ring-orange-500 outline-none"
+          />
+        </div>
+
+        <!-- Payment Option -->
+        <div>
+          <label class="block text-xs font-extrabold text-gray-700 mb-1.5">Payment Method</label>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <label class="p-3 border-2 border-orange-500 bg-orange-50/50 rounded-xl flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="payment_method" value="Cash at Counter" id="pay-cash" checked class="text-orange-600 focus:ring-orange-500" />
+              <div>
+                <span class="font-bold text-gray-900 block leading-tight">Pay at Counter</span>
+                <span class="text-[10px] text-gray-500">Cash / Card at desk</span>
+              </div>
+            </label>
+
+            <label class="p-3 border border-amber-200 bg-white hover:bg-amber-50/50 rounded-xl flex items-center gap-2 cursor-pointer" onclick="CanteenApp.openUPIModal()">
+              <input type="radio" name="payment_method" value="UPI Instant QR" id="pay-upi" class="text-orange-600 focus:ring-orange-500" />
+              <div>
+                <span class="font-bold text-gray-900 block leading-tight">UPI QR Code</span>
+                <span class="text-[10px] text-gray-500">GPay, PhonePe, Paytm</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Place Order Button -->
+        <button 
+          type="submit" 
+          class="w-full py-3 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white rounded-2xl font-black text-sm shadow-md transition-all active:scale-98 flex items-center justify-center gap-2 mt-2"
+        >
+          <span>Place Order</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+        </button>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       9. ORDER CONFIRMATION & LIVE STATUS TRACKER MODAL
+       (Fulfills exact prompt format: 🔔 CANTEEN ORDER NOTICE)
+       ========================================================================= -->
+  <div id="order-confirmation-modal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border-2 border-orange-400 relative max-h-[92vh] overflow-y-auto">
+      
+      <!-- Close button -->
+      <button onclick="CanteenApp.closeOrderConfirmationModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 p-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <!-- Prominent Order Notice Header -->
+      <div class="text-center pb-4 border-b border-amber-200">
+        <div class="w-16 h-16 rounded-full bg-orange-100 border-2 border-orange-300 text-orange-600 flex items-center justify-center text-3xl mx-auto mb-2 shadow-inner">
+          🔔
+        </div>
+        <h3 class="text-lg font-black text-orange-800 tracking-wider uppercase">
+          CANTEEN ORDER NOTICE
+        </h3>
+        <p class="text-xs font-bold text-emerald-700 mt-1">
+          Your order has been received successfully.
+        </p>
+      </div>
+
+      <!-- Key Order Parameters Card -->
+      <div class="my-4 p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl border border-amber-200 space-y-2.5">
+        
+        <div class="flex justify-between items-center">
+          <span class="text-xs text-gray-600 font-semibold">Order ID:</span>
+          <span id="conf-order-id" class="text-base font-black font-mono text-gray-900 bg-white px-2.5 py-0.5 rounded-lg border border-amber-300">#ORD1025</span>
+        </div>
+
+        <div class="flex justify-between items-center">
+          <span class="text-xs text-gray-600 font-semibold">Table:</span>
+          <span id="conf-table-number" class="text-sm font-extrabold text-orange-800 bg-orange-100 px-2.5 py-0.5 rounded-lg">Table 4</span>
+        </div>
+
+        <div class="flex justify-between items-center">
+          <span class="text-xs text-gray-600 font-semibold">Customer:</span>
+          <span id="conf-customer-name" class="text-xs font-bold text-gray-800">Rahul Patel</span>
+        </div>
+
+        <div class="flex justify-between items-center">
+          <span class="text-xs text-gray-600 font-semibold">Estimated preparation time:</span>
+          <span id="conf-est-time" class="text-xs font-extrabold text-orange-700">10–15 minutes</span>
+        </div>
+
+        <div class="flex justify-between items-center pt-2 border-t border-amber-200">
+          <span class="text-xs text-gray-600 font-semibold">Status:</span>
+          <span id="conf-status-pill" class="px-3 py-1 bg-yellow-100 text-yellow-900 border border-yellow-400 rounded-full text-xs font-black inline-flex items-center gap-1.5">
+            🟡 Order Received
+          </span>
+        </div>
+
+      </div>
+
+      <!-- Live 5-Step Status Progress Tracker -->
+      <div class="my-5">
+        <h4 class="text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-3 text-center">
+          Live Order Status Tracker
+        </h4>
+        <div id="order-status-steps" class="flex justify-between items-center relative px-2">
+          <!-- Step icons rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Ordered Items Breakdown -->
+      <div class="mb-4">
+        <h4 class="text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">Items in this order:</h4>
+        <div id="conf-items-list" class="bg-gray-50 p-3 rounded-2xl border border-gray-200 space-y-1">
+          <!-- Item list -->
+        </div>
+        <div class="flex justify-between items-center text-sm font-black text-gray-900 mt-2 px-1">
+          <span>Total Amount:</span>
+          <span id="conf-total-amount" class="text-orange-700">₹125</span>
+        </div>
+      </div>
+
+      <!-- WhatsApp Bill Sending Card -->
+      <div class="my-4 p-3.5 bg-emerald-50/90 rounded-2xl border-2 border-emerald-300 shadow-xs">
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-black text-emerald-950 flex items-center gap-1.5">
+            <span class="text-base">📱</span>
+            <span>Customer WhatsApp Number:</span>
+          </label>
+          <span class="px-2 py-0.5 bg-emerald-200 text-emerald-900 rounded-md text-[10px] font-extrabold tracking-wide">
+            Official e-Bill
+          </span>
+        </div>
+
+        <div class="flex gap-2">
+          <div class="relative flex-1">
+            <span class="absolute left-3 top-2.5 text-xs font-bold text-gray-500 select-none">+91</span>
+            <input 
+              type="tel" 
+              id="conf-whatsapp-input" 
+              maxlength="10"
+              placeholder="Enter 10-digit mobile number" 
+              class="w-full pl-11 pr-3 py-2.5 bg-white border border-emerald-400 rounded-xl text-xs font-bold text-gray-900 focus:ring-2 focus:ring-emerald-500 outline-none shadow-2xs"
+            />
+          </div>
+          <button 
+            type="button"
+            onclick="CanteenApp.saveConfirmationWhatsAppNumber()" 
+            class="px-3 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300 rounded-xl text-xs font-bold transition-all flex items-center gap-1 flex-shrink-0"
+            title="Save Number"
+          >
+            Save
+          </button>
+        </div>
+        <p class="text-[10.5px] text-emerald-800 mt-1.5 font-medium leading-relaxed">
+          Tap the button below to receive an itemized bill directly on your WhatsApp with Order ID & table details.
+        </p>
+      </div>
+
+      <!-- Action Buttons Group -->
+      <div class="space-y-2.5 mt-4">
+        <!-- Prominent: Send Bill on WhatsApp -->
+        <button 
+          id="conf-send-whatsapp-btn"
+          type="button"
+          onclick="CanteenApp.sendWhatsAppBillFromConfirmation()" 
+          class="w-full py-3.5 px-4 bg-[#25D366] hover:bg-[#20ba5a] text-white rounded-2xl font-black text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 active:scale-98 group cursor-pointer"
+        >
+          <svg class="w-5 h-5 fill-current group-hover:scale-110 transition-transform flex-shrink-0" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766 0-3.18-2.586-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.275.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.086s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824zm-3.392-10.416c-4.282 0-7.765 3.483-7.765 7.766 0 1.411.378 2.736 1.037 3.876l-1.077 3.931 4.041-1.06c1.104.606 2.373.951 3.764.951 4.282 0 7.765-3.483 7.765-7.766 0-4.283-3.483-7.766-7.765-7.766zm0 14.154c-1.162 0-2.298-.314-3.289-.908l-.235-.141-2.441.64.651-2.379-.153-.244c-.655-1.041-1.002-2.247-1.002-3.488 0-3.535 2.877-6.413 6.469-6.413 3.593 0 6.469 2.878 6.469 6.413 0 3.536-2.876 6.413-6.469 6.413z"/></svg>
+          <span class="tracking-wide">Send Bill on WhatsApp</span>
+        </button>
+
+        <!-- Secondary Action Buttons: View Bill, Print Bill, Back to Menu -->
+        <div class="grid grid-cols-3 gap-2">
+          <button 
+            type="button"
+            onclick="CanteenApp.viewBillFromConfirmation()" 
+            class="py-2.5 px-2 bg-amber-100 hover:bg-amber-200 text-amber-950 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-2xs border border-amber-300"
+          >
+            <span class="text-sm">📄</span>
+            <span>View Bill</span>
+          </button>
+
+          <button 
+            type="button"
+            onclick="CanteenApp.printBillFromConfirmation()" 
+            class="py-2.5 px-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-2xs border border-gray-300"
+          >
+            <span class="text-sm">🖨️</span>
+            <span>Print Bill</span>
+          </button>
+
+          <button 
+            type="button"
+            onclick="CanteenApp.closeOrderConfirmationModal()" 
+            class="py-2.5 px-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-2xs"
+          >
+            <span class="text-sm">🏠</span>
+            <span>Back to Menu</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       9B. DIGITAL BILL MODAL (View Bill & Print Bill)
+       ========================================================================= -->
+  <div id="digital-bill-modal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border-2 border-amber-300 relative max-h-[92vh] overflow-y-auto">
+      
+      <!-- Close button -->
+      <button onclick="WhatsAppBillManager.closeBillModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 p-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <!-- Bill Header -->
+      <div class="text-center pb-3 border-b-2 border-dashed border-gray-300">
+        <div class="inline-flex items-center gap-1.5 justify-center mb-1">
+          <span class="text-xl">🍽️</span>
+          <h3 class="font-black text-gray-900 text-base tracking-wide uppercase">Shreeji Campus Canteen</h3>
+        </div>
+        <p class="text-xs text-amber-800 font-bold gujarati-font">શ્રીજી કેમ્પસ કેન્ટીન • ફૂડ કોર્ટ</p>
+        <span class="inline-block mt-1 px-3 py-0.5 bg-gray-100 text-gray-700 rounded-md text-[11px] font-black uppercase tracking-wider">
+          🧾 Order Bill / Tax Invoice
+        </span>
+      </div>
+
+      <!-- Bill Parameters -->
+      <div class="my-3 py-2 border-b border-gray-200 text-xs space-y-1 text-gray-700">
+        <div class="flex justify-between font-mono">
+          <span>Order ID: <b id="bill-order-id" class="text-gray-900">#ORD1025</b></span>
+          <span id="bill-table-number" class="font-bold text-orange-700">Table 4</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Date & Time:</span>
+          <span id="bill-date-time" class="font-medium">06/10/2026 • 06:25 PM</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Customer:</span>
+          <span id="bill-customer-name" class="font-bold text-gray-900">Rahul Patel</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Mobile:</span>
+          <span id="bill-customer-phone" class="font-medium text-gray-600">9876543210</span>
+        </div>
+        <div class="flex justify-between items-center pt-1">
+          <span>Status:</span>
+          <span id="bill-order-status" class="px-2 py-0.5 rounded-full text-xs font-black bg-yellow-100 text-yellow-900">Order Received</span>
+        </div>
+      </div>
+
+      <!-- Itemized Table -->
+      <table class="w-full text-xs my-3">
+        <thead>
+          <tr class="border-b-2 border-gray-200 text-gray-500 font-bold">
+            <th class="py-1 text-left">Item</th>
+            <th class="py-1 text-center">Qty</th>
+            <th class="py-1 text-right">Price</th>
+            <th class="py-1 text-right">Total</th>
+          </tr>
+        </thead>
+        <tbody id="bill-items-body">
+          <!-- Dynamically populated items -->
+        </tbody>
+      </table>
+
+      <!-- Bill Totals -->
+      <div class="pt-3 border-t-2 border-dashed border-gray-300 space-y-1.5 text-xs text-gray-700">
+        <div class="flex justify-between">
+          <span>Subtotal:</span>
+          <span id="bill-subtotal" class="font-bold text-gray-900">₹0</span>
+        </div>
+        <div class="flex justify-between text-emerald-700">
+          <span>Student Discount / Tax:</span>
+          <span>₹0 (Included)</span>
+        </div>
+        <div class="flex justify-between text-base font-black text-gray-900 pt-1.5 border-t border-gray-200">
+          <span>Grand Total:</span>
+          <span id="bill-total" class="text-orange-700">₹0</span>
+        </div>
+      </div>
+
+      <!-- Footer Info -->
+      <div class="my-4 p-3 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-center space-y-1">
+        <div class="flex items-center justify-between text-gray-600 font-medium">
+          <span>⏱️ Estimated Prep Time:</span>
+          <span id="bill-est-time" class="font-black text-orange-700">10–15 minutes</span>
+        </div>
+        <div class="flex items-center justify-between text-gray-600 font-medium">
+          <span>💳 Payment:</span>
+          <span id="bill-payment-method" class="font-bold text-gray-900">Cash at Counter</span>
+        </div>
+        <p class="text-[11px] font-bold text-gray-500 pt-1">Thank you for ordering from our canteen! 🙏</p>
+      </div>
+
+      <!-- Actions in Bill Modal -->
+      <div class="space-y-2">
+        <button 
+          id="bill-whatsapp-btn"
+          type="button"
+          class="w-full py-2.5 bg-[#25D366] hover:bg-[#20ba5a] text-white rounded-xl text-xs font-black shadow-sm transition-all flex items-center justify-center gap-1.5"
+        >
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766 0-3.18-2.586-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.275.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.086s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824zm-3.392-10.416c-4.282 0-7.765 3.483-7.765 7.766 0 1.411.378 2.736 1.037 3.876l-1.077 3.931 4.041-1.06c1.104.606 2.373.951 3.764.951 4.282 0 7.765-3.483 7.765-7.766 0-4.283-3.483-7.766-7.765-7.766zm0 14.154c-1.162 0-2.298-.314-3.289-.908l-.235-.141-2.441.64.651-2.379-.153-.244c-.655-1.041-1.002-2.247-1.002-3.488 0-3.535 2.877-6.413 6.469-6.413 3.593 0 6.469 2.878 6.469 6.413 0 3.536-2.876 6.413-6.469 6.413z"/></svg>
+          <span>Send Bill on WhatsApp</span>
+        </button>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button 
+            id="bill-print-btn"
+            type="button"
+            class="py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 border border-gray-300"
+          >
+            🖨️ Print Slip
+          </button>
+          <button 
+            type="button"
+            onclick="WhatsAppBillManager.closeBillModal()" 
+            class="py-2.5 bg-gray-800 hover:bg-gray-900 text-white rounded-xl text-xs font-bold transition-all"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       9C. ADMIN WHATSAPP CUSTOMER MESSAGE MODAL
+       ========================================================================= -->
+  <div id="admin-whatsapp-modal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border-2 border-emerald-400 relative max-h-[92vh] overflow-y-auto">
+      
+      <!-- Close button -->
+      <button onclick="AdminController.closeWhatsAppModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 p-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-12 h-12 rounded-2xl bg-[#25D366] text-white flex items-center justify-center text-2xl font-black shadow-sm">
+          💬
+        </div>
+        <div>
+          <h3 class="font-black text-gray-900 text-base leading-tight">WhatsApp Customer Update</h3>
+          <p class="text-xs text-emerald-800 font-bold">Canteen Kitchen Staff Messenger</p>
+        </div>
+      </div>
+
+      <!-- Order Details Summary -->
+      <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs mb-3 space-y-1">
+        <div class="flex justify-between">
+          <span>Order: <b id="adm-wa-order-id" class="font-mono text-gray-900">#ORD1025</b></span>
+          <span id="adm-wa-table" class="font-extrabold text-orange-700">Table 4</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Customer: <b id="adm-wa-customer">Rahul Patel</b></span>
+          <span>Status: <b id="adm-wa-status" class="text-emerald-800">Ready</b></span>
+        </div>
+      </div>
+
+      <!-- Target Phone Input -->
+      <div class="mb-3">
+        <label class="block text-xs font-bold text-gray-700 mb-1">Customer Mobile / WhatsApp Number</label>
+        <div class="relative">
+          <span class="absolute left-3 top-2.5 text-xs font-bold text-gray-400">+91</span>
+          <input 
+            type="tel" 
+            id="adm-wa-phone-input" 
+            maxlength="10"
+            placeholder="10-digit mobile number" 
+            class="w-full pl-11 pr-3 py-2 bg-gray-50 border border-gray-300 rounded-xl text-xs font-bold text-gray-900 focus:ring-2 focus:ring-emerald-500 outline-none"
+          />
+        </div>
+      </div>
+
+      <!-- Quick Message Type Presets -->
+      <div class="mb-3">
+        <label class="block text-xs font-bold text-gray-700 mb-1.5">Choose Message Template:</label>
+        <div class="grid grid-cols-2 gap-1.5 text-xs">
+          <button 
+            type="button" 
+            onclick="AdminController.selectWhatsAppPreset('ready')"
+            class="p-2 text-left rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-950 font-bold flex items-center gap-1.5"
+          >
+            <span>🔔</span> Order is Ready!
+          </button>
+          <button 
+            type="button" 
+            onclick="AdminController.selectWhatsAppPreset('preparing')"
+            class="p-2 text-left rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-950 font-bold flex items-center gap-1.5"
+          >
+            <span>👨‍🍳</span> Order is Preparing
+          </button>
+          <button 
+            type="button" 
+            onclick="AdminController.selectWhatsAppPreset('accepted')"
+            class="p-2 text-left rounded-xl border border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-950 font-bold flex items-center gap-1.5"
+          >
+            <span>🔵</span> Order Accepted
+          </button>
+          <button 
+            type="button" 
+            onclick="AdminController.selectWhatsAppPreset('completed')"
+            class="p-2 text-left rounded-xl border border-gray-300 bg-gray-50 hover:bg-gray-100 text-gray-800 font-bold flex items-center gap-1.5"
+          >
+            <span>✅</span> Order Completed
+          </button>
+          <button 
+            type="button" 
+            onclick="AdminController.selectWhatsAppPreset('bill')"
+            class="col-span-2 p-2 text-left rounded-xl border border-purple-300 bg-purple-50 hover:bg-purple-100 text-purple-950 font-bold flex items-center gap-1.5"
+          >
+            <span>🧾</span> Send Complete Order Bill
+          </button>
+        </div>
+      </div>
+
+      <!-- Message Text Area Preview & Edit -->
+      <div class="mb-4">
+        <label class="block text-xs font-bold text-gray-700 mb-1">Message Preview (Editable):</label>
+        <textarea 
+          id="adm-wa-message-textarea" 
+          rows="6" 
+          class="w-full p-3 bg-gray-50 border border-gray-300 rounded-xl font-mono text-xs text-gray-800 focus:ring-2 focus:ring-emerald-500 outline-none leading-relaxed"
+        ></textarea>
+        <p class="text-[10px] text-gray-400 mt-1">Formatted with WhatsApp emojis, bold tags, and line breaks.</p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex gap-2">
+        <button 
+          type="button"
+          onclick="AdminController.sendCustomerWhatsAppMessage()" 
+          class="flex-1 py-3 bg-[#25D366] hover:bg-[#20ba5a] text-white rounded-xl text-xs font-black shadow-md transition-all flex items-center justify-center gap-2 active:scale-98"
+        >
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766 0-3.18-2.586-5.771-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.275.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.086s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.099.824zm-3.392-10.416c-4.282 0-7.765 3.483-7.765 7.766 0 1.411.378 2.736 1.037 3.876l-1.077 3.931 4.041-1.06c1.104.606 2.373.951 3.764.951 4.282 0 7.765-3.483 7.765-7.766 0-4.283-3.483-7.766-7.765-7.766zm0 14.154c-1.162 0-2.298-.314-3.289-.908l-.235-.141-2.441.64.651-2.379-.153-.244c-.655-1.041-1.002-2.247-1.002-3.488 0-3.535 2.877-6.413 6.469-6.413 3.593 0 6.469 2.878 6.469 6.413 0 3.536-2.876 6.413-6.469 6.413z"/></svg>
+          <span>Send via WhatsApp</span>
+        </button>
+        <button 
+          type="button"
+          onclick="AdminController.closeWhatsAppModal()" 
+          class="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all"
+        >
+          Cancel
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       10. TABLE SELECTOR & QR SWITCHER MODAL
+       ========================================================================= -->
+  <div id="table-selector-modal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border-2 border-amber-300 relative">
+      <button onclick="CanteenApp.closeTableModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 p-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="text-center mb-4">
+        <div class="w-12 h-12 rounded-2xl bg-orange-100 text-orange-700 flex items-center justify-center text-2xl mx-auto mb-2 border border-orange-200">
+          📍
+        </div>
+        <h3 class="font-black text-gray-900 text-lg">Select Your Table</h3>
+        <p class="text-xs text-gray-500 gujarati-font">તમે બેઠા છો તે ટેબલ નંબર પસંદ કરો (Table 1 to 10)</p>
+      </div>
+
+      <div id="table-buttons-grid" class="grid grid-cols-5 gap-2 my-4">
+        <!-- Rendered dynamically Table 1 to 10 -->
+      </div>
+
+      <div class="pt-3 border-t border-amber-200 text-center">
+        <p class="text-[11px] text-gray-500">
+          Normally students scan the physical QR standee on their table.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       11. TABLE QR STANDEES & PRINT HUB MODAL (Tables 1 to 10)
+       ========================================================================= -->
+  <div id="qr-standees-modal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-4xl w-full p-6 shadow-2xl border-2 border-amber-300 relative max-h-[90vh] flex flex-col justify-between">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-4 border-b border-amber-200">
+        <div>
+          <h3 class="font-black text-gray-900 text-lg flex items-center gap-2">
+            <span>📱 Table QR Code Standees (Tables 1 – 10)</span>
+          </h3>
+          <p class="text-xs text-gray-500 gujarati-font">
+            દરેક ટેબલ માટે યુનિક ક્યુઆર કોડ. ટેસ્ટ કરવા માટે કેમેરા વડે સ્કેન કરો અથવા ક્લિક કરો.
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="window.print()" class="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-xl text-xs font-bold transition-all flex items-center gap-1">
+            🖨️ Print All
+          </button>
+          <button onclick="CanteenApp.closeStandeesModal()" class="text-gray-400 hover:text-gray-700 p-1">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Standees Grid Scrollable -->
+      <div class="flex-1 overflow-y-auto py-4">
+        <div id="all-standees-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Standees 1 to 10 generated dynamically -->
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="pt-3 border-t border-amber-200 text-center text-xs text-gray-500">
+        Clicking 'Open Menu' switches your session instantly to that table URL (?table=X).
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       12. UPI QR CODE MODAL SIMULATOR
+       ========================================================================= -->
+  <div id="upi-qr-modal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border-2 border-purple-300 relative text-center">
+      <button onclick="CanteenApp.closeUPIModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 p-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center text-2xl mx-auto mb-2 border border-purple-200">
+        💳
+      </div>
+      <h3 class="font-black text-gray-900 text-base">Instant UPI Payment</h3>
+      <p class="text-xs text-gray-500 mb-3">Scan via Google Pay, PhonePe, or Paytm</p>
+
+      <div class="p-3 bg-purple-50/50 rounded-2xl border border-purple-200 mb-4 inline-block">
+        <div id="upi-qr-box" class="flex items-center justify-center min-h-[150px]"></div>
+        <p class="text-xs font-mono text-purple-900 font-bold mt-2">canteen@okhdfcbank</p>
+      </div>
+
+      <div class="mb-4">
+        <span class="text-xs text-gray-500">Payable Amount:</span>
+        <span id="upi-amount-display" class="text-2xl font-black text-gray-900 block">₹0</span>
+      </div>
+
+      <div class="space-y-2">
+        <button 
+          onclick="CanteenApp.simulateUPISuccess()" 
+          class="w-full py-2.5 bg-purple-700 hover:bg-purple-800 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5"
+        >
+          ✓ Simulate Payment Completed
+        </button>
+        <button 
+          onclick="CanteenApp.closeUPIModal()" 
+          class="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium"
+        >
+          Pay Cash at Counter Instead
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       13. ADMIN AUTHENTICATION PIN MODAL
+       ========================================================================= -->
+  <div id="admin-pin-modal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border-2 border-slate-700 relative text-center">
+      <button onclick="document.getElementById('admin-pin-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 p-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="w-12 h-12 rounded-2xl bg-slate-900 text-amber-400 flex items-center justify-center text-2xl mx-auto mb-2">
+        🔒
+      </div>
+      <h3 class="font-black text-gray-900 text-base">Canteen Staff Login</h3>
+      <p class="text-xs text-gray-500 mb-4">Enter Staff PIN (Default: <b>1234</b>)</p>
+
+      <input 
+        type="password" 
+        id="admin-pin-input" 
+        placeholder="Enter 4-digit PIN" 
+        maxlength="6"
+        class="w-full text-center tracking-widest text-lg font-bold py-2.5 px-4 bg-gray-50 border border-gray-300 rounded-xl mb-4 focus:ring-2 focus:ring-orange-500 outline-none"
+        onkeydown="if(event.key === 'Enter') checkStaffPin()"
+      />
+
+      <div class="grid grid-cols-2 gap-2">
+        <button 
+          onclick="checkStaffPin()" 
+          class="py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold transition-all"
+        >
+          Unlock Admin
+        </button>
+        <button 
+          onclick="document.getElementById('admin-pin-modal').classList.add('hidden')" 
+          class="py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       14. ADMIN & KITCHEN DISPLAY SYSTEM (KDS) MODAL / SCREEN
+       ========================================================================= -->
+  <div id="admin-dashboard-modal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-2 sm:p-4">
+    <div class="bg-white rounded-3xl max-w-6xl w-full h-[95vh] shadow-2xl border-2 border-orange-400 flex flex-col overflow-hidden">
+      
+      <!-- Admin Top Bar -->
+      <div class="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 flex-shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-orange-600 text-white flex items-center justify-center text-xl font-bold">
+            👨‍🍳
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-black text-base text-white tracking-wide">Canteen Kitchen & Staff Portal</h3>
+              <span id="admin-active-orders-count" class="px-2 py-0.5 bg-orange-500 text-white rounded-full text-[10px] font-black">
+                0 Active
+              </span>
+            </div>
+            <p class="text-xs text-amber-300 gujarati-font">શ્રીજી કેમ્પસ કેન્ટીન • કિચન કંટ્રોલ પેનલ</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Audio Test / Alert Indicator -->
+          <button onclick="SoundFX.orderPlaced(); showToast('Tested kitchen chime!');" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-amber-300 text-xs font-bold hidden sm:flex items-center gap-1" title="Test Alert Bell">
+            🔔 Test Bell
+          </button>
+          
+          <button onclick="closeAdminDashboard()" class="p-2 text-gray-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs Inside Admin -->
+      <div class="bg-amber-50/80 px-4 py-2 border-b border-amber-200 flex flex-wrap items-center justify-between gap-2 flex-shrink-0">
+        <div class="flex items-center gap-1">
+          <button 
+            onclick="AdminController.switchTab('orders')" 
+            data-tab="orders" 
+            class="admin-nav-tab px-3.5 py-1.5 rounded-xl text-xs font-bold bg-orange-600 text-white shadow-sm transition-all"
+          >
+            📋 Live Orders
+          </button>
+
+          <button 
+            onclick="AdminController.switchTab('menu')" 
+            data-tab="menu" 
+            class="admin-nav-tab px-3.5 py-1.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-amber-100/70 transition-all"
+          >
+            🍲 Menu & Stock
+          </button>
+
+          <button 
+            onclick="AdminController.switchTab('hours')" 
+            data-tab="hours" 
+            class="admin-nav-tab px-3.5 py-1.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-amber-100/70 transition-all"
+          >
+            ⏰ Canteen Hours
+          </button>
+
+          <button 
+            onclick="AdminController.switchTab('stats')" 
+            data-tab="stats" 
+            class="admin-nav-tab px-3.5 py-1.5 rounded-xl text-xs font-bold text-gray-600 hover:bg-amber-100/70 transition-all"
+          >
+            📊 Analytics
+          </button>
+        </div>
+
+        <button onclick="closeAdminDashboard()" class="text-xs text-orange-700 font-bold hover:underline">
+          Return to Customer Menu →
+        </button>
+      </div>
+
+      <!-- Main Admin Content Area (Scrollable) -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-slate-50/50">
+        
+        <!-- PANEL 1: LIVE ORDERS FEED -->
+        <div id="admin-panel-orders" class="space-y-4">
+          
+          <!-- Filters & Action Bar -->
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-amber-200">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="text-xs text-gray-500 font-bold mr-1">Filter:</span>
+              <button onclick="AdminController.setOrderFilter('active')" data-filter="active" class="order-filter-chip px-3 py-1 bg-orange-600 text-white rounded-lg text-xs font-bold">
+                Active Kitchen Orders
+              </button>
+              <button onclick="AdminController.setOrderFilter('preparing')" data-filter="preparing" class="order-filter-chip px-3 py-1 bg-amber-100 text-amber-900 rounded-lg text-xs font-bold">
+                Preparing
+              </button>
+              <button onclick="AdminController.setOrderFilter('ready')" data-filter="ready" class="order-filter-chip px-3 py-1 bg-amber-100 text-amber-900 rounded-lg text-xs font-bold">
+                Ready for Pickup
+              </button>
+              <button onclick="AdminController.setOrderFilter('completed')" data-filter="completed" class="order-filter-chip px-3 py-1 bg-amber-100 text-amber-900 rounded-lg text-xs font-bold">
+                Completed
+              </button>
+              <button onclick="AdminController.setOrderFilter('all')" data-filter="all" class="order-filter-chip px-3 py-1 bg-amber-100 text-amber-900 rounded-lg text-xs font-bold">
+                All Orders
+              </button>
+            </div>
+
+            <button onclick="AdminController.renderOrders(); showToast('Orders refreshed!');" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold flex items-center gap-1">
+              🔄 Refresh
+            </button>
+          </div>
+
+          <!-- Orders Cards Grid -->
+          <div id="admin-orders-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Rendered dynamically -->
+          </div>
+
+        </div>
+
+        <!-- PANEL 2: MENU & STOCK MANAGEMENT -->
+        <div id="admin-panel-menu" class="hidden space-y-4">
+          <div class="flex items-center justify-between bg-white p-4 rounded-2xl border border-amber-200">
+            <div>
+              <h4 class="font-extrabold text-gray-900 text-sm">Manage Canteen Food Items</h4>
+              <p class="text-xs text-gray-500">Edit prices, prep times, toggle stock availability or add dishes.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="AdminController.openAddItemModal()" class="px-3.5 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-black shadow-sm flex items-center gap-1.5">
+                <span>+</span> Add Food Item
+              </button>
+              <button onclick="AdminController.resetMenuToDefaults()" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold">
+                Reset Defaults
+              </button>
+            </div>
+          </div>
+
+          <!-- Menu Table -->
+          <div class="bg-white rounded-2xl border border-amber-200 overflow-hidden shadow-xs">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-amber-50/70 border-b border-amber-200 text-amber-900 font-extrabold">
+                  <tr>
+                    <th class="p-3">Item Name</th>
+                    <th class="p-3">Category</th>
+                    <th class="p-3">Price</th>
+                    <th class="p-3">Est Prep</th>
+                    <th class="p-3">Stock Status</th>
+                    <th class="p-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-menu-table-body">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL 3: CANTEEN OPENING HOURS & SETTINGS -->
+        <div id="admin-panel-hours" class="hidden space-y-4 max-w-2xl">
+          <div class="bg-white p-5 rounded-2xl border border-amber-200 shadow-xs space-y-4">
+            <div>
+              <h4 class="font-black text-gray-900 text-base">Canteen Operating Schedule</h4>
+              <p class="text-xs text-gray-500 mt-0.5">Control canteen status for students.</p>
+            </div>
+
+            <!-- Standard Schedule Display -->
+            <div class="p-3.5 bg-amber-50/70 rounded-xl border border-amber-200 text-xs space-y-1.5">
+              <div class="flex justify-between font-bold text-gray-800">
+                <span>Monday – Saturday:</span>
+                <span class="text-orange-700">8:00 AM – 8:00 PM</span>
+              </div>
+              <div class="flex justify-between font-bold text-gray-800">
+                <span>Sunday:</span>
+                <span class="text-rose-700">Closed</span>
+              </div>
+            </div>
+
+            <!-- Override Mode for Testing / Rush Hours -->
+            <div>
+              <label class="block text-xs font-extrabold text-gray-700 mb-1">
+                Operational Status Override (Testing & Holidays):
+              </label>
+              <select 
+                id="admin-override-select" 
+                onchange="AdminController.saveOperatingOverride(this.value)"
+                class="w-full p-2.5 bg-white border border-amber-300 rounded-xl text-xs font-bold text-gray-800 outline-none"
+              >
+                <option value="auto">Automatic (Follow Standard Timings: 8 AM – 8 PM, Mon–Sat)</option>
+                <option value="force_open">Force Open (Testing Mode - Allow orders anytime)</option>
+                <option value="force_closed">Force Closed (Break / Holiday / Emergency)</option>
+              </select>
+              <p class="text-[11px] text-gray-400 mt-1">
+                Tip: Choose "Force Open" if testing outside local college operating hours.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL 4: ANALYTICS & STATS -->
+        <div id="admin-panel-stats" class="hidden space-y-4">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            
+            <div class="bg-white p-4 rounded-2xl border border-amber-200 shadow-xs">
+              <span class="text-xs font-bold text-gray-500 block">Total Revenue</span>
+              <span id="admin-stat-revenue" class="text-2xl font-black text-orange-600 block mt-1">₹0</span>
+              <span class="text-[10px] text-emerald-600 font-semibold">Today's collection</span>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-amber-200 shadow-xs">
+              <span class="text-xs font-bold text-gray-500 block">Total Orders</span>
+              <span id="admin-stat-orders" class="text-2xl font-black text-gray-900 block mt-1">0</span>
+              <span class="text-[10px] text-gray-400">All tables</span>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-amber-200 shadow-xs">
+              <span class="text-xs font-bold text-gray-500 block">Active in Kitchen</span>
+              <span id="admin-stat-active" class="text-2xl font-black text-amber-600 block mt-1">0</span>
+              <span class="text-[10px] text-amber-700 font-semibold">In prep / waiting</span>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-amber-200 shadow-xs">
+              <span class="text-xs font-bold text-gray-500 block">Completed</span>
+              <span id="admin-stat-completed" class="text-2xl font-black text-emerald-600 block mt-1">0</span>
+              <span class="text-[10px] text-gray-400">Served & fulfilled</span>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       15. ADMIN ADD FOOD ITEM MODAL
+       ========================================================================= -->
+  <div id="admin-add-item-modal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border-2 border-orange-300 relative max-h-[90vh] overflow-y-auto">
+      <button onclick="AdminController.closeAddItemModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 p-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <h3 class="font-black text-gray-900 text-lg mb-1">Add New Food Item</h3>
+      <p class="text-xs text-gray-500 mb-4 gujarati-font">નવી વાનગી મેનુમાં ઉમેરો</p>
+
+      <form onsubmit="AdminController.saveNewItem(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Food Name (English) *</label>
+          <input type="text" id="new-item-name-en" required placeholder="e.g. Cheese Pav Bhaji" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl" />
+        </div>
+
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Food Name (Gujarati)</label>
+          <input type="text" id="new-item-name-gu" placeholder="e.g. ચીઝ પાવ ભાજી" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-gray-700 mb-1">Category</label>
+            <select id="new-item-category" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl font-bold">
+              <option value="Gujarati Snacks">Gujarati Snacks</option>
+              <option value="Breakfast">Breakfast</option>
+              <option value="Fast Food">Fast Food</option>
+              <option value="Beverages">Beverages</option>
+              <option value="Gujarati Special">Gujarati Special</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-gray-700 mb-1">Price (₹) *</label>
+            <input type="number" id="new-item-price" required min="5" placeholder="50" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl font-bold" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-gray-700 mb-1">Prep Time (mins)</label>
+            <input type="number" id="new-item-time" min="1" value="8" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl" />
+          </div>
+          <div class="flex items-center pt-5">
+            <label class="flex items-center gap-2 cursor-pointer font-bold text-purple-900">
+              <input type="checkbox" id="new-item-jain" class="w-4 h-4 text-purple-600 rounded" />
+              <span>Jain Friendly?</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Short Description</label>
+          <textarea id="new-item-desc" rows="2" placeholder="Delicious Gujarati spiced snack..." class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl"></textarea>
+        </div>
+
+        <div>
+          <label class="block font-bold text-gray-700 mb-1">Image URL (Optional)</label>
+          <input type="url" id="new-item-image" placeholder="https://..." class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-xl" />
+        </div>
+
+        <div class="pt-2 flex gap-2">
+          <button type="submit" class="flex-1 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold">
+            Add to Menu
+          </button>
+          <button type="button" onclick="AdminController.closeAddItemModal()" class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       16. FLOATING QUICK CART BAR FOR MOBILE
+       ========================================================================= -->
+  <div id="mobile-cart-float-bar" class="md:hidden fixed bottom-4 left-4 right-4 z-40 transform translate-y-32 transition-transform duration-300">
+    <div onclick="CanteenApp.openCartDrawer()" class="floating-cart-btn bg-gradient-to-r from-orange-600 via-orange-500 to-amber-600 text-white p-3.5 rounded-2xl shadow-xl flex items-center justify-between cursor-pointer border border-orange-400">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center font-black text-lg">
+          🛒
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="mobile-cart-float-count" class="font-extrabold text-sm">0 items</span>
+            <span class="text-xs opacity-75">•</span>
+            <span id="mobile-cart-float-total" class="font-black text-sm text-amber-200">₹0</span>
+          </div>
+          <span id="mobile-cart-float-time" class="text-[10px] text-amber-100">⏱️ 10–15 mins</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1 font-black text-xs bg-white text-orange-700 px-3 py-1.5 rounded-xl shadow-xs">
+        <span>View Order</span>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       17. GLOBAL TOAST NOTIFICATION COMPONENT
+       ========================================================================= -->
+  <div id="global-toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 translate-y-24 opacity-0 pointer-events-none">
+    <div class="bg-gray-900/95 text-white backdrop-blur-md px-4 py-2.5 rounded-2xl shadow-2xl border border-gray-700 flex items-center gap-2.5 text-xs font-bold">
+      <span class="text-base">🔔</span>
+      <span id="toast-text">Notice message</span>
+    </div>
+  </div>
+
+  <!-- Hidden Section for Printable KOT Slips and Standees -->
+  <div id="printable-section"></div>
+
+  <!-- =========================================================================
+       18. FOOTER
+       ========================================================================= -->
+  <footer class="bg-white border-t border-amber-200/80 pt-10 pb-16 md:pb-8 text-xs text-gray-500 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 pb-8 border-b border-amber-100">
+        
+        <div class="space-y-2">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">🍲</span>
+            <h4 class="font-black text-gray-900 text-sm">Shreeji Campus Canteen</h4>
+          </div>
+          <p class="text-xs text-amber-800 gujarati-font font-bold">શ્રીજી કેમ્પસ કેન્ટીન • સ્વાદિષ્ટ અને સાત્વિક</p>
+          <p class="text-[11px] text-gray-500 leading-relaxed">
+            Serving fresh, delicious Gujarati and Indian street snacks, breakfast, beverages & thali to students and college staff.
+          </p>
+        </div>
+
+        <div>
+          <h5 class="font-extrabold text-gray-900 mb-2">College Timings</h5>
+          <p class="text-xs text-gray-600">Monday – Saturday: 8:00 AM – 8:00 PM</p>
+          <p class="text-xs text-rose-600 font-bold mt-1">Sunday: Closed</p>
+          <p class="text-[11px] text-gray-400 mt-2">Campus Food Court, Block B Ground Floor</p>
+        </div>
+
+        <div>
+          <h5 class="font-extrabold text-gray-900 mb-2">Specialties</h5>
+          <ul class="space-y-1 text-xs text-gray-600">
+            <li>• Crispy Masala Bhakhri with Ghee</li>
+            <li>• Methi Thepla & Fresh Curd</li>
+            <li>• Surti Sev Khamani & Live Dhokla</li>
+            <li>• Kadak Cutting Chai & Jeera Chaas</li>
+            <li>• Royal Gujarati Thali</li>
+          </ul>
+        </div>
+
+        <div>
+          <h5 class="font-extrabold text-gray-900 mb-2">Staff & Administration</h5>
+          <p class="text-xs text-gray-600 mb-2">Kitchen staff can manage incoming orders in real-time.</p>
+          <button onclick="openAdminAuthModal()" class="px-3 py-1.5 bg-slate-900 text-amber-300 font-bold rounded-lg text-xs hover:bg-black transition-colors">
+            Staff Portal (PIN: 1234)
+          </button>
+        </div>
+
+      </div>
+
+      <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-center">
+        <p>© 2026 Shreeji Campus Canteen. All rights reserved. 100% Pure Vegetarian.</p>
+        <p class="gujarati-font text-orange-700 font-bold">જય શ્રી કૃષ્ણ • પધારો આપનું સ્વાગત છે</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Logic Scripts -->
+  <script src="js/menu-data.js"></script>
+  <script src="js/qr-generator.js"></script>
+  <script src="js/whatsapp-bill.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/admin.js"></script>
+
+  <script>
+    // Quick helper to open admin pin modal or direct if authenticated
+    function openAdminAuthModal() {
+      if (AdminController.isAuthenticated) {
+        document.getElementById('admin-dashboard-modal').classList.remove('hidden');
+        AdminController.switchTab('orders');
+      } else {
+        document.getElementById('admin-pin-modal').classList.remove('hidden');
+        document.getElementById('admin-pin-input').value = '';
+        setTimeout(() => document.getElementById('admin-pin-input').focus(), 150);
+      }
+    }
+
+    function checkStaffPin() {
+      const pin = document.getElementById('admin-pin-input').value.trim();
+      if (AdminController.unlockAdmin(pin)) {
+        document.getElementById('admin-dashboard-modal').classList.remove('hidden');
+      }
+    }
+
+    function closeAdminDashboard() {
+      document.getElementById('admin-dashboard-modal').classList.add('hidden');
+    }
+
+    // Initialize application on DOM ready
+    document.addEventListener('DOMContentLoaded', () => {
+      CanteenApp.init();
+      AdminController.init();
+    });
+  </script>
+</body>
+</html>
